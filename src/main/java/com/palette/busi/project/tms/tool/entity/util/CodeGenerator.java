@@ -70,7 +70,9 @@ public class CodeGenerator {
 		}
 		
 		List<String> allTableNameList = new ArrayList<String>();
-		for(Object tableName : markerTableNameList){
+		String tableSchema = PropertiesAccessor.getString("tableSchema");
+		List<Object> allTableObjList = dbMatcher.getAllTableName(tableSchema);
+		for(Object tableName : allTableObjList){
 			
 			String codeTableName = StringUtil.underScore2CamelCase(tableName.toString());
 			codeTableName = StringUtil.upcaseFirstLetter(codeTableName);
