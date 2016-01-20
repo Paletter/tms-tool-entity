@@ -1,5 +1,9 @@
 package ${packagePath}.dao;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.SimpleTimeZone;
 
 import org.apache.ibatis.exceptions.TooManyResultsException;
 import org.apache.ibatis.session.SqlSession;
@@ -19,14 +23,20 @@ import ${packagePath}.page.PageModel;
 @Component
 public class ${table.name}Dao extends BaseDaoImpl {
 	
-	public ${table.name} update${table.name}(${table.name} ${table.privateName}) throws BaseException {
+	public ${table.name} update${table.name}(${table.name} ${table.privateName}, String user, String programId) throws BaseException {
 		${table.name}Intf mapper = this.getSqlSessionTemplate().getMapper(${table.name}Intf.class);
+		${table.privateName}.setUpdateDateTime(getCurrentGMTDate());
+		${table.privateName}.setUpdateUserCode(user);
 		mapper.update${table.name}(${table.privateName});
 		return ${table.privateName};
 	}
 	
-	public ${table.name} insert${table.name}(${table.name} ${table.privateName}) throws BaseException {
+	public ${table.name} insert${table.name}(${table.name} ${table.privateName}, String user, String programId) throws BaseException {
 		${table.name}Intf mapper = this.getSqlSessionTemplate().getMapper(${table.name}Intf.class);
+		${table.privateName}.setCreateDateTime(getCurrentGMTDate());
+		${table.privateName}.setCreateUserCode(user);
+		${table.privateName}.setUpdateDateTime(getCurrentGMTDate());
+		${table.privateName}.setUpdateUserCode(user);
 		mapper.insert${table.name}(${table.privateName});
 		if(${table.privateName}.get${table.name}Id() == null){
 			${table.privateName}.set${table.name}Id(getLastPk());
@@ -75,15 +85,23 @@ public class ${table.name}Dao extends BaseDaoImpl {
 		}
 	}
 	
-	public ${table.name} save${table.name}(${table.name} ${table.privateName}) throws BaseException {
-		${table.name}Intf mapper = this.getSqlSessionTemplate().getMapper(${table.name}Intf.class);
+	public ${table.name} save${table.name}(${table.name} ${table.privateName}, String user, String programId) throws BaseException {
 		if(${table.privateName}.get${table.name}Id() == null){
-			mapper.insert${table.name}(${table.privateName});
-			${table.privateName} = select${table.name}ById(getLastPk());
+			${table.privateName} = insert${table.name}(${table.privateName}, user, programId);
 		}else{
-			mapper.update${table.name}(${table.privateName});
-			${table.privateName} = mapper.select${table.name}ById(${table.privateName}.get${table.name}Id());
+			${table.privateName} = update${table.name}(${table.privateName}, user, programId);
 		}
 		return ${table.privateName};
 	}
+	
+	private Date getCurrentGMTDate() {
+		try {
+	        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	        dateFormat.setTimeZone(new SimpleTimeZone(0, "GMT"));
+	        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	        return dateTimeFormat.parse(dateFormat.format(new Date()));
+		} catch (Exception e) {
+			throw new BaseException(e.getMessage());
+		}
+    }
 }
